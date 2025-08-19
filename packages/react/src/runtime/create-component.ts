@@ -1,6 +1,8 @@
 import type { EventName, Options } from '@lit/react';
 import { createComponent as createComponentWrapper } from '@lit/react';
 
+import { transformTagName } from './tagNameTransformer.js';
+
 // A key value map matching React prop names to event names.
 type EventNames = Record<string, EventName | string>;
 
@@ -25,5 +27,12 @@ export const createComponent = <I extends HTMLElement, E extends EventNames = {}
   if (typeof defineCustomElement !== 'undefined') {
     defineCustomElement();
   }
-  return createComponentWrapper<I, E>(options) as unknown as StencilReactComponent<I, E>;
+
+  // Apply tag name transformation if a transformer is set
+  const transformedOptions = {
+    ...options,
+    tagName: transformTagName(options.tagName),
+  };
+
+  return createComponentWrapper<I, E>(transformedOptions) as unknown as StencilReactComponent<I, E>;
 };

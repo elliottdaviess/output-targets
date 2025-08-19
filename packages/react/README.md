@@ -78,6 +78,120 @@ npm install typescript@5 --save-dev
 
 That's it! You can now import and use your Stencil components as React components in your React application or library.
 
+## Advanced Usage
+
+### Runtime Tag Name Transformation for Microfrontends
+
+The React output target supports **runtime tag name transformation** for microfrontend environments where multiple teams need to use different versions of the same components without conflicts.
+
+#### **Setup**
+
+Configure your Stencil build normally (no special configuration needed):
+
+```ts
+import { Config } from '@stencil/core';
+import { reactOutputTarget } from '@stencil/react-output-target';
+
+export const config: Config = {
+  outputTargets: [
+    reactOutputTarget({
+      outDir: '../my-react-library/src/components',
+    }),
+    { type: 'dist-custom-elements' },
+  ],
+};
+```
+
+#### **Usage in MFE Applications**
+
+Each microfrontend can configure tag name transformation at runtime:
+
+```tsx
+// In your MFE application entry point
+import { setTagNameTransformer } from '@my-design-system/react';
+
+// Team Alpha: Add team prefix
+setTagNameTransformer((tagName) => `alpha-${tagName}`);
+
+// Team Beta: Add team prefix  
+setTagNameTransformer((tagName) => `beta-${tagName}`);
+
+// Version-specific transformation
+setTagNameTransformer((tagName) => `${tagName}-v2`);
+
+// Environment-specific transformation
+setTagNameTransformer((tagName) => `${tagName}-${process.env.NODE_ENV}`);
+```
+
+#### **Component Usage (Same API for All Teams)**
+
+```tsx
+import { MyButton, MyTabs, MyTab } from '@my-design-system/react';
+
+function App() {
+  return (
+    <div>
+      <MyButton>Click me</MyButton>
+      <MyTabs>
+        <MyTab>Tab 1</MyTab>
+        <MyTab>Tab 2</MyTab>
+      </MyTabs>
+    </div>
+  );
+}
+
+// Renders different DOM based on transformer:
+// Team Alpha: <alpha-my-button>, <alpha-my-tabs>, <alpha-my-tab>
+// Team Beta:  <beta-my-button>, <beta-my-tabs>, <beta-my-tab>
+// Version 2:  <my-button-v2>, <my-tabs-v2>, <my-tab-v2>
+```
+
+#### **Advanced Transformation Logic**
+
+```tsx
+import { setTagNameTransformer, clearTagNameTransformer } from '@my-design-system/react';
+
+// Conditional transformation
+setTagNameTransformer((tagName) => {
+  if (tagName.startsWith('my-')) {
+    return `admiral-${tagName.substring(3)}-v2`;
+  }
+  return tagName;
+});
+
+// Clear transformation (useful for testing)
+clearTagNameTransformer();
+
+// Complex team-based logic
+const teamConfig = {
+  alpha: (tagName: string) => `alpha-${tagName}`,
+  beta: (tagName: string) => `beta-${tagName}`,
+  gamma: (tagName: string) => `${tagName}-v2`,
+};
+
+setTagNameTransformer(teamConfig[process.env.TEAM_NAME] || ((name) => name));
+```
+
+#### **Benefits**
+
+✅ **Single Build Pipeline**: Design system team maintains one build
+✅ **Runtime Flexibility**: Teams can change transformations without rebuilds  
+✅ **Simple Distribution**: One NPM package for all teams
+✅ **Zero Configuration**: No build-time setup required
+✅ **Dynamic Control**: Can change transformations based on environment/conditions
+
+#### **Migration Strategy**
+
+```tsx
+// Gradual migration approach
+if (process.env.ENABLE_NEW_COMPONENTS === 'true') {
+  setTagNameTransformer((tagName) => `${tagName}-v2`);
+}
+// Otherwise uses original tag names
+```
+
+> **Note:** Tag name transformation only affects the DOM tag names used by custom elements. React component names and import paths remain unchanged, ensuring a consistent developer experience across all teams.
+
 ## Output Target Options
 
 | Property                | Description                                                                                                                                                                                                                                                                    |
