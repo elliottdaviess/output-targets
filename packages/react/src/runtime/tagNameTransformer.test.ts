@@ -5,7 +5,7 @@ import {
   getTagNameTransformer,
   transformTagName,
   type TagNameTransformer 
-} from './tagNameTransformer.js';
+} from './tagNameTransformer';
 
 describe('tagNameTransformer', () => {
   beforeEach(() => {
