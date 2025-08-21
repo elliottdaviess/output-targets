@@ -29,9 +29,17 @@ export const createComponent = <I extends HTMLElement, E extends EventNames = {}
   }
 
   // Apply tag name transformation if a transformer is set
+  const originalTagName = options.tagName;
+  const transformedTagName = transformTagName(originalTagName);
+
+  // Debug logging
+  if (originalTagName !== transformedTagName) {
+    console.log(`🔧 Transforming: ${originalTagName} → ${transformedTagName}`);
+  }
+
   const transformedOptions = {
     ...options,
-    tagName: transformTagName(options.tagName),
+    tagName: transformedTagName,
   };
 
   return createComponentWrapper<I, E>(transformedOptions) as unknown as StencilReactComponent<I, E>;
