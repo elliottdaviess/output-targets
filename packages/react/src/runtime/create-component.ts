@@ -32,6 +32,9 @@ export const createComponent = <I extends HTMLElement, E extends EventNames = {}
   const originalTagName = options.tagName;
   const transformedTagName = transformTagName(originalTagName);
 
+  console.log('originalTagName', originalTagName);
+  console.log('transformedTagName', transformedTagName);
+
   // Debug logging
   if (originalTagName !== transformedTagName) {
     console.log(`🔧 Transforming: ${originalTagName} → ${transformedTagName}`);
